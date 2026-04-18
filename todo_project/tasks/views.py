@@ -41,3 +41,12 @@ def api_tasks(request):
     tasks = Task.objects.filter(user=request.user)
     data = list(tasks.values('id', 'title', 'completed'))
     return JsonResponse(data, safe=False)
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Task
+
+def complete_task(request, id):
+    task = get_object_or_404(Task, id=id)
+    task.completed = True
+    task.save()
+    return redirect('/')
