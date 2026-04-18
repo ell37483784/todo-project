@@ -22,9 +22,11 @@ def task_list(request):
     return render(request, 'tasks/index.html', {'tasks': tasks})
 
 
-def delete_task(request, id):
-    task = get_object_or_404(Task, id=id)
-    task.delete()
+def complete_task(request, id):
+    task = Task.objects.filter(id=id).first()
+    if task:
+        task.completed = True
+        task.save()
     return redirect('/')
 
 
