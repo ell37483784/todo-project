@@ -3,7 +3,8 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Task
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.views import LoginView, LogoutView
+from django.http import JsonResponse
+
 
 def register(request):
     form = UserCreationForm(request.POST or None)
@@ -13,17 +14,20 @@ def register(request):
         return redirect('/')
     return render(request, 'tasks/register.html', {'form': form})
 
+
 @login_required
 def task_list(request):
     filter_type = request.GET.get('filter', 'all')
 
-tasks = Task.objects.filter(user=request.user)
+    tasks = Task.objects.filter(user=request.user)
 
-if filter_type == 'active':
-    tasks = tasks.filter(completed=False)
+    if filter_type == 'active':
+        tasks = tasks.filter(completed=False)
+    elif filter_type == 'done':
+        tasks = tasks.filter(completed=True)
 
-elif filter_type == 'done':
-    tasks = tasks.filter(completed=True)
+    return render(request, 'tasks/index.html', {'tasks': tasks})
+
 
 @login_required
 def delete_task(request, id):
@@ -31,12 +35,9 @@ def delete_task(request, id):
     task.delete()
     return redirect('/')
 
-from django.http import JsonResponse
 
+@login_required
 def api_tasks(request):
     tasks = Task.objects.filter(user=request.user)
-
     data = list(tasks.values('id', 'title', 'completed'))
     return JsonResponse(data, safe=False)
-
-# Create your views here.
